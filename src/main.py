@@ -1,6 +1,7 @@
 import re
 
 from pathlib import Path
+from typing import Dict, List
 
 
 def main():
@@ -8,6 +9,11 @@ def main():
     preprocessed = simple_tokenizer(text=text)
     print(len(preprocessed))
     print(preprocessed[:30])
+    vocab = get_vocab(preprocessed)
+    for i, item in enumerate(vocab.items()):
+        print(item)
+        if i >= 50:
+            break
 
 
 def read_the_verdict() -> str:
@@ -16,10 +22,18 @@ def read_the_verdict() -> str:
     return text
 
 
-def simple_tokenizer(text: str):
+def simple_tokenizer(text: str) -> List[str]:
     result = re.split(r'([,.:;?_!"()\']|--|\s)', text)
     result = [item for item in result if item.strip()]
     return result
+
+
+def get_vocab(tokens: List[str]) -> Dict[str, int]:
+    all_words = sorted(set(tokens))
+    vocab_size = len(all_words)
+    print(f"{vocab_size=}")
+    vocab = {token: integer for integer, token in enumerate(all_words)}
+    return vocab
 
 
 if __name__ == "__main__":
