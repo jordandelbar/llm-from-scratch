@@ -3,6 +3,8 @@ import re
 from pathlib import Path
 from typing import Dict, List
 
+from simple_tokenizer import SimpleTokenizerV1
+
 
 def main():
     text = read_the_verdict()
@@ -10,10 +12,11 @@ def main():
     print(len(preprocessed))
     print(preprocessed[:30])
     vocab = get_vocab(preprocessed)
-    for i, item in enumerate(vocab.items()):
-        print(item)
-        if i >= 50:
-            break
+    tokenizer = SimpleTokenizerV1(vocab)
+    text = """"It's the last he painted, you know,"
+               Mrs. Gisburn said with pardonable pride."""
+    ids = tokenizer.encode(text)
+    print(ids)
 
 
 def read_the_verdict() -> str:
