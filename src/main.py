@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 from typing import Dict, List
 
-from simple_tokenizer import SimpleTokenizerV1
+from simple_tokenizer import SimpleTokenizerV2
 
 
 def main():
@@ -12,11 +12,18 @@ def main():
     print(len(preprocessed))
     print(preprocessed[:30])
     vocab = get_vocab(preprocessed)
-    tokenizer = SimpleTokenizerV1(vocab)
+    tokenizer = SimpleTokenizerV2(vocab)
     text = """"It's the last he painted, you know,"
                Mrs. Gisburn said with pardonable pride."""
     ids = tokenizer.encode(text)
     print(ids)
+    print(tokenizer.decode(ids))
+    text1 = "Hello, do you like tea"
+    text2 = "In the sunlit terraces of the palace."
+    text = " <|endoftext|> ".join((text1, text2))
+    print(text)
+    print(tokenizer.encode(text))
+    print(tokenizer.decode(tokenizer.encode(text)))
 
 
 def read_the_verdict() -> str:
@@ -31,11 +38,12 @@ def simple_tokenizer(text: str) -> List[str]:
     return result
 
 
-def get_vocab(tokens: List[str]) -> Dict[str, int]:
-    all_words = sorted(set(tokens))
-    vocab_size = len(all_words)
+def get_vocab(preprocessed: List[str]) -> Dict[str, int]:
+    all_tokens = sorted(set(preprocessed))
+    all_tokens.extend(["<|endoftext|>", "<|unk|>"])
+    vocab_size = len(all_tokens)
     print(f"{vocab_size=}")
-    vocab = {token: integer for integer, token in enumerate(all_words)}
+    vocab = {token: integer for integer, token in enumerate(all_tokens)}
     return vocab
 
 
