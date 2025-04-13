@@ -98,6 +98,17 @@ def simple_attention_mechanism():
     for i, x_i in enumerate(inputs):
         context_vec_2 += attn_weights_2[i] * x_i
     print(context_vec_2)
+    attn_scores = torch.empty(6, 6)
+    for i, x_i in enumerate(inputs):
+        for j, x_j in enumerate(inputs):
+            attn_scores[i, j] = torch.dot(x_i, x_j)
+    print(attn_scores)
+    attn_scores = inputs @ inputs.T
+    print(attn_scores)
+    attn_weights = torch.softmax(attn_scores, dim=-1)
+    print(attn_weights)
+    all_context_weights = attn_weights @ inputs
+    print(all_context_weights)
 
 
 def read_the_verdict() -> str:
