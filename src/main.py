@@ -50,15 +50,15 @@ def create_dataloader_v1(
 
 
 def main():
-    raw_text = read_the_verdict()
+    vocab_size = 6
+    output_dim = 3
 
-    dataloader = create_dataloader_v1(
-        raw_text, batch_size=8, max_length=4, stride=4, shuffle=False
-    )
-    data_iter = iter(dataloader)
-    inputs, targets = next(data_iter)
-    print("Inputs:\n", inputs)
-    print("Targets:\n", targets)
+    torch.manual_seed(123)
+    embedding_layer = torch.nn.Embedding(vocab_size, output_dim)
+    print(embedding_layer.weight)
+    print(embedding_layer(torch.tensor([3])))
+    input_ids = torch.tensor([2, 3, 5, 1])
+    print(embedding_layer(input_ids))
 
 
 def read_the_verdict() -> str:
