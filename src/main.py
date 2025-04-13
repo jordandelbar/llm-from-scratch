@@ -1,12 +1,14 @@
 from pathlib import Path
+from typing import List, Tuple
 
 import tiktoken
+from tiktoken import Encoding
 import torch
 from torch.utils.data import Dataset, DataLoader
 
 
 class GPTDatasetV1(Dataset):
-    def __init__(self, txt, tokenizer, max_length, stride):
+    def __init__(self, txt: str, tokenizer: Encoding, max_length: int, stride: int):
         self.input_ids = []
         self.target_ids = []
 
@@ -21,19 +23,19 @@ class GPTDatasetV1(Dataset):
     def __len__(self):
         return len(self.input_ids)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int) -> Tuple[List[int], List[int]]:
         return self.input_ids[idx], self.target_ids[idx]
 
 
 def create_dataloader_v1(
-    txt,
-    batch_size=4,
-    max_length=256,
-    stride=128,
-    shuffle=True,
-    drop_last=True,
-    num_workers=0,
-):
+    txt: str,
+    batch_size: int = 4,
+    max_length: int = 256,
+    stride: int = 128,
+    shuffle: bool = True,
+    drop_last: bool = True,
+    num_workers: int = 0,
+) -> DataLoader:
     tokenizer = tiktoken.get_encoding("gpt2")
     dataset = GPTDatasetV1(txt, tokenizer, max_length, stride)
     dataloader = DataLoader(
@@ -51,11 +53,12 @@ def main():
     raw_text = read_the_verdict()
 
     dataloader = create_dataloader_v1(
-        raw_text, batch_size=8, max_length=4, stride=1, shuffle=False
+        raw_text, batch_size=8, max_length=4, stride=4, shuffle=False
     )
     data_iter = iter(dataloader)
-    first_batch = next(data_iter)
-    print(first_batch)
+    inputs, targets = next(data_iter)
+    print("Inputs:\n", inputs)
+    print("Targets:\n", targets)
 
 
 def read_the_verdict() -> str:
