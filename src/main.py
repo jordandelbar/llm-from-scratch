@@ -29,11 +29,13 @@ class GPTDatasetV1(Dataset):
 
 
 class SelfAttention_v1(nn.Module):
-    def __init__(self, d_in, d_out, qkv_bias=False):
+    def __init__(
+        self, w_query_params, w_key_params, w_value_params, d_in, d_out, qkv_bias=False
+    ):
         super().__init__()
-        self.W_query = nn.Parameter(torch.rand(d_in, d_out))
-        self.W_key = nn.Parameter(torch.rand(d_in, d_out))
-        self.W_value = nn.Parameter(torch.rand(d_in, d_out))
+        self.W_query = w_query_params
+        self.W_key = w_key_params
+        self.W_value = w_value_params
 
     def forward(self, x):
         keys = x @ self.W_key
@@ -125,7 +127,12 @@ def simple_attention_mechanism():
     d_in = inputs.shape[1]
     d_out = 2
     sa_v2 = SelfAttention_v2(d_in, d_out)
+    w_query_params = sa_v2.W_query.weight.T
+    w_key_params = sa_v2.W_key.weight.T
+    w_value_params = sa_v2.W_value.weight.T
+    sa_v1 = SelfAttention_v1(w_query_params, w_key_params, w_value_params, d_in, d_out)
     print(sa_v2(inputs))
+    print(sa_v1(inputs))
 
 
 def read_the_verdict() -> str:
