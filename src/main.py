@@ -4,6 +4,7 @@ from typing import List, Tuple
 import tiktoken
 from tiktoken import Encoding
 import torch
+import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 
 
@@ -25,6 +26,23 @@ class GPTDatasetV1(Dataset):
 
     def __getitem__(self, idx: int) -> Tuple[List[int], List[int]]:
         return self.input_ids[idx], self.target_ids[idx]
+
+
+class SelfAttention_v1(nn.Module):
+    def __init__(self, d_in, d_out):
+        super().__init__()
+        self.W_query = nn.Parameter(torch.rand(d_in, d_out))
+        self.W_key = nn.Parameter(torch.rand(d_in, d_out))
+        self.W_value = nn.Parameter(torch.rand(d_in, d_out))
+
+    def forward(self, x):
+        keys = x @ self.W_key
+        queries = x @ self.W_query
+        values = x @ self.W_value
+        attn_scores = queries @ keys.T
+        attn_weights = torch.softmax(attn_scores / keys.shape[-1] ** 0.5, dim=-1)
+        context_vec = attn_weights @ values
+        return context_vec
 
 
 def create_dataloader_v1(
@@ -76,6 +94,7 @@ def main():
 
 
 def simple_attention_mechanism():
+    torch.manual_seed(123)
     inputs = torch.tensor(
         [
             [0.43, 0.15, 0.89],  # Your
@@ -86,59 +105,10 @@ def simple_attention_mechanism():
             [0.05, 0.80, 0.55],
         ]  # step
     )
-    query = inputs[1]
-    attn_scores_2 = torch.empty(inputs.shape[0])
-    for i, x_i in enumerate(inputs):
-        attn_scores_2[i] = torch.dot(x_i, query)
-    print(attn_scores_2)
-    attn_weights_2 = torch.softmax(attn_scores_2, dim=0)
-    print("Attention wieghts:", attn_weights_2)
-    print("Sum:", attn_weights_2.sum())
-    context_vec_2 = torch.zeros(query.shape)
-    for i, x_i in enumerate(inputs):
-        context_vec_2 += attn_weights_2[i] * x_i
-    print(context_vec_2)
-    attn_scores = torch.empty(6, 6)
-    for i, x_i in enumerate(inputs):
-        for j, x_j in enumerate(inputs):
-            attn_scores[i, j] = torch.dot(x_i, x_j)
-    print(attn_scores)
-    attn_scores = inputs @ inputs.T
-    print(attn_scores)
-    attn_weights = torch.softmax(attn_scores, dim=-1)
-    print(attn_weights)
-    all_context_weights = attn_weights @ inputs
-    print(all_context_weights)
-
-    # Self attention
-    x_2 = inputs[1]
     d_in = inputs.shape[1]
     d_out = 2
-    torch.manual_seed(123)
-    W_query = torch.nn.Parameter(torch.rand(d_in, d_out), requires_grad=False)
-    W_key = torch.nn.Parameter(torch.rand(d_in, d_out), requires_grad=False)
-    W_value = torch.nn.Parameter(torch.rand(d_in, d_out), requires_grad=False)
-    query_2 = x_2 @ W_query
-    key_2 = x_2 @ W_key
-    value_2 = x_2 @ W_value
-    print(query_2)
-    print(key_2)
-    print(value_2)
-    keys = inputs @ W_key
-    values = inputs @ W_value
-    print(f"{keys.shape=}")
-    print(f"{values.shape=}")
-
-    keys_2 = keys[1]
-    attn_score_22 = query_2.dot(keys_2)
-    print(attn_score_22)
-    attn_scores_2 = query_2 @ keys.T
-    print(attn_scores_2)
-    d_k = keys.shape[-1]
-    attn_weights_2 = torch.softmax(attn_scores_2 / d_k**0.5, dim=-1)
-    print(attn_weights_2)
-    context_vec_2 = attn_weights_2 @ values
-    print(context_vec_2)
+    sa_v1 = SelfAttention_v1(d_in, d_out)
+    print(sa_v1(inputs))
 
 
 def read_the_verdict() -> str:
