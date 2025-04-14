@@ -127,12 +127,17 @@ def simple_attention_mechanism():
     d_in = inputs.shape[1]
     d_out = 2
     sa_v2 = SelfAttention_v2(d_in, d_out)
-    w_query_params = sa_v2.W_query.weight.T
-    w_key_params = sa_v2.W_key.weight.T
-    w_value_params = sa_v2.W_value.weight.T
-    sa_v1 = SelfAttention_v1(w_query_params, w_key_params, w_value_params, d_in, d_out)
-    print(sa_v2(inputs))
-    print(sa_v1(inputs))
+    queries = sa_v2.W_query(inputs)
+    keys = sa_v2.W_key(inputs)
+    attn_scores = queries @ keys.T
+    attn_weights = torch.softmax(attn_scores / keys.shape[-1] ** 0.5, dim=-1)
+    print(attn_weights)
+    context_length = attn_scores.shape[0]
+    mask = torch.triu(torch.ones(context_length, context_length), diagonal=1)
+    masked = attn_scores.masked_fill(mask.bool(), -torch.inf)
+    print(masked)
+    attn_weights = torch.softmax(masked / keys.shape[-1] ** 0.5, dim=-1)
+    print(attn_weights)
 
 
 def read_the_verdict() -> str:
