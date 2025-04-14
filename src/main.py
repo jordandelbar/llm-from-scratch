@@ -64,6 +64,32 @@ class SelfAttention_v2(nn.Module):
         return context_vec
 
 
+class CausalAttention(nn.Module):
+    def __init__(self, d_in, d_out, context_length, dropout, qkv_bias=False):
+        super().__init__()
+        self.d_out = d_out
+        self.W_query = nn.Linear(d_in, d_out, bias=qkv_bias)
+        self.W_key = nn.Linear(d_in, d_out, bias=qkv_bias)
+        self.W_value = nn.Linear(d_in, d_out, bias=qkv_bias)
+        self.dropout = nn.Dropout(dropout)
+        self.register_buffer(
+            "mask", torch.triu(torch.ones(context_length, context_length), diagonal=1)
+        )
+
+    def forward(self, x):
+        b, num_tokens, d_in = x.shape
+        keys = self.W_key(x)
+        queries = self.W_query(x)
+        values = self.W_value(x)
+
+        attn_scores = queries @ keys.transpose(1, 2)
+        attn_scores.masked_fill(self.mask.bool()[:num_tokens, :num_tokens], -torch.inf)
+        attn_weights = torch.softmax(attn_scores / keys.shape[-1] ** 0.5, dim=-1)
+
+        context_vec = attn_weights @ values
+        return context_vec
+
+
 def create_dataloader_v1(
     txt: str,
     batch_size: int = 4,
@@ -113,7 +139,7 @@ def main():
 
 
 def simple_attention_mechanism():
-    torch.manual_seed(789)
+    torch.manual_seed(123)
     inputs = torch.tensor(
         [
             [0.43, 0.15, 0.89],  # Your
@@ -124,20 +150,17 @@ def simple_attention_mechanism():
             [0.05, 0.80, 0.55],
         ]  # step
     )
+    batch = torch.stack((inputs, inputs), dim=0)
+    print(batch.size)
+
     d_in = inputs.shape[1]
     d_out = 2
-    sa_v2 = SelfAttention_v2(d_in, d_out)
-    queries = sa_v2.W_query(inputs)
-    keys = sa_v2.W_key(inputs)
-    attn_scores = queries @ keys.T
-    attn_weights = torch.softmax(attn_scores / keys.shape[-1] ** 0.5, dim=-1)
-    print(attn_weights)
-    context_length = attn_scores.shape[0]
-    mask = torch.triu(torch.ones(context_length, context_length), diagonal=1)
-    masked = attn_scores.masked_fill(mask.bool(), -torch.inf)
-    print(masked)
-    attn_weights = torch.softmax(masked / keys.shape[-1] ** 0.5, dim=-1)
-    print(attn_weights)
+    context_length = batch.shape[1]
+
+    ca = CausalAttention(d_in, d_out, context_length, 0.0)
+    context_vecs = ca(batch)
+    print("context_vecs.shape:", context_vecs.shape)
+    print("context_vecs:", context_vecs)
 
 
 def read_the_verdict() -> str:
