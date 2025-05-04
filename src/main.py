@@ -123,9 +123,9 @@ class MultiHeadAttention(nn.Module):
 
     def forward(self, x):
         b, num_tokens, d_in = x.shape
-        keys = self.W_key(x)
-        queries = self.W_query(x)
-        values = self.W_value(x)
+        keys: torch.Tensor = self.W_key(x)
+        queries: torch.Tensor = self.W_query(x)
+        values: torch.Tensor = self.W_value(x)
         keys = keys.view(b, num_tokens, self.num_heads, self.head_dim)
         values = values.view(b, num_tokens, self.num_heads, self.head_dim)
         queries = queries.view(b, num_tokens, self.num_heads, self.head_dim)

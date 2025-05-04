@@ -16,3 +16,7 @@ def download_the_verdict():
         urllib.request.urlretrieve(url, file_path)
     else:
         print("file already downloaded")
+
+
+if __name__ == "__main__":
+    download_the_verdict()
